@@ -1,2 +1,5 @@
 export {Shot} from "./shot"
-export {AABBComponents, BasicShotInfo} from "./types"
+export {ShotFactory} from "./shotFactory"
+export {StaticShot} from "./staticShot"
+export {AABBComponents, BasicShotInfo, } from "./types"
+export {projectileGravity, trajectoryInfo} from "./calc/constants"

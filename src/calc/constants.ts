@@ -1,5 +1,6 @@
 type ProjectileInfo = { v0: number; g: number };
 type ProjectileInfos = { [name: string]: ProjectileInfo };
+type ProjectileGravity = {[name: string]: number;}
 
 
 export const trajectoryInfo: ProjectileInfos = {
@@ -13,6 +14,16 @@ export const trajectoryInfo: ProjectileInfos = {
     splash_potion: { v0: 0.4, g: 0.03 },
 
 };
+
+export const projectileGravity: ProjectileGravity = {
+    arrow: 0.05,
+    trident: 0.05,
+    egg: 0.04,
+    snowball: 0.04,
+    ender_pearl: 0.04,
+    splash_potion: 0.03,
+    firework_rocket: 0.00,
+} 
 
 
 export const airResistance = {

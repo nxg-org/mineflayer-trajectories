@@ -81,32 +81,6 @@ export class Shot {
         this.interceptCalcs = interceptCalcs;
     }
 
-    // TODO: With yaw, pitch, and scalar speed, calculate velocity.
-    static fromShootingPlayer(
-        { position, yaw, pitch, velocity, heldItem }: ShotEntity,
-        interceptCalcs: InterceptFunctions,
-        weapon?: string
-    ): Shot {
-        const info = trajectoryInfo[weapon! ?? heldItem?.name];
-        if (!!info) {
-            const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, info.v0);
-            return new Shot(velocity, { position: position.offset(0, 1.62, 0), velocity: projVel, gravity: info.g }, interceptCalcs);
-        } else {
-            throw "Invalid weapon";
-        }
-    }
-
-    static fromWeapon({ position, velocity }: ProjectileMotion, interceptCalcs: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.05 }, interceptCalcs);
-    }
-
-    static fromThrowable({ position, velocity }: ProjectileMotion, interceptCalcs: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.03 }, interceptCalcs);
-    }
-
-    static withoutGravity({ position, velocity }: ProjectileMotion, interceptCalcs: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.00 }, interceptCalcs);
-    }
 
     public canCollisionDetect(): boolean {
         return !!this.interceptCalcs;
@@ -124,7 +98,6 @@ export class Shot {
         return getEntityAABB({ position, height, width }).intersectsRay(this.initialPos, this.initialVel);
     }
 
-    //TODO: Optimize raycast; change check from 3D to 2D (check only X and Z).
     public entityXZInterceptCheck({ position, height, width }: AABBComponents): { x: number; z: number } | null {
         return getEntityAABB({ position, height, width }).xzIntersectsRay(this.initialPos, this.initialVel);
     }
@@ -142,14 +115,12 @@ export class Shot {
             .filter((box) => !!box.xzIntersectsRay(this.initialPos, this.initialVel));
     }
 
-    //TODO: Add a check for piercing from crossbows; if so, check multiple entities.
-    //* Partially done? Now yields.
     public hitEntitiesCheck(...entities: AABBComponents[]) {
         let shots = [];
         const possibleEntities = this.aabbHitCheckXZ(...entities);
         for (const entity of possibleEntities) {
             if (entity) {
-                const shotInfo = this.newCalcToEntity(entity);
+                const shotInfo = this.calcToEntity(entity);
                 if (shotInfo.intersectPos) shots.push({ entity: entity, shotInfo: shotInfo });
             }
         }
@@ -161,16 +132,15 @@ export class Shot {
         extras: { yawChecked: boolean; blockCheck: boolean } = { yawChecked: false, blockCheck: true }
     ): BasicShotInfo | null {
         if (extras.yawChecked) {
-            return this.newCalcToEntity(entity, extras.blockCheck);
+            return this.calcToEntity(entity, extras.blockCheck);
         } else {
             return this.hitEntitiesCheck(entity)[0]?.shotInfo ?? null;
         }
     }
 
-    public hitEntityWithPredictionCheck({ position, height, width }: AABBComponents, avgSpeed: Vec3): boolean {
+    public hitsEntityWithPrediction({ position, height, width }: AABBComponents, avgSpeed: Vec3): BasicShotInfo {
         //Ignore XZ check as we will check two different XZ coords.
-        const calcShot = this.newCalcToEntity({ position, height, width });
-        if (!calcShot.intersectPos) return false;
+        const calcShot = this.calcToEntity({ position, height, width });
         const { newTarget } = getPremonition(
             this.initialPos,
             position.clone().add(avgSpeed.clone().scale(calcShot.totalTicks + 5)),
@@ -178,136 +148,11 @@ export class Shot {
             calcShot.totalTicks
         );
         const newAABB = getEntityAABB({ position: newTarget, height, width });
-        const calcPredictShot = this.newCalcToEntity(newAABB, true);
-        return !!calcPredictShot.intersectPos;
+        const calcPredictShot = this.calcToEntity(newAABB, true);
+        return calcPredictShot
     }
 
-    public checkForEntityHitFromSortedPoints(
-        { position, height, width }: AABBComponents,
-        points: Vec3[],
-        notchianPointVecs: Vec3[],
-        blockChecking: boolean = false
-    ): { closestPoint: Vec3; blockHit: Block | null } {
-        if (points.length === 0 || notchianPointVecs.length === 0) throw "Not enough points.";
-        if (points.length !== notchianPointVecs.length) throw "Invalid positions or velocities: Different amount of inputs.";
-        const entityAABB = getEntityAABB({ position, height, width });
-        let nearestDistance = entityAABB.distanceTo(points[0]);
-        let currentDistance: number;
-        let closestPoint = points[0];
-        let intersect: Vec3 | null = null;
-        let block: Block | null = null;
-
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
-            currentDistance = entityAABB.distanceTo(point);
-            if (nearestDistance > currentDistance) break;
-            nearestDistance = currentDistance;
-            closestPoint = point;
-
-            const nextPoint = point.clone().add(notchianPointVecs[i]);
-            if (blockChecking && this.interceptCalcs) {
-                block = this.interceptCalcs.check(point, nextPoint)?.block;
-                if (block) break;
-            }
-            intersect = entityAABB.intersectsSegment(point, nextPoint);
-            if (intersect) break;
-        }
-
-        return { closestPoint: intersect ?? closestPoint, blockHit: block };
-    }
-
-    static calculateShotForCollision(
-        origin: Vec3,
-        target: AABBComponents,
-        rawVelocity: Vec3,
-        gravity: number,
-        blockChecker?: InterceptFunctions,
-        blockChecking: boolean = false
-    ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null, intersectPos: Vec3 | null } {
-        // rawVelocity = notchianVel(rawVelocity).vel
-        const entityAABB = getEntityAABB(target);
-        let points: Vec3[] = [];
-        let pointVelocities: Vec3[] = [];
-        let blockHit: Block | null = null;
-        let intersectPos: Vec3 | null = null;
-        let tickVelocity = rawVelocity.clone();
-        let nextPosition = origin.clone().add(rawVelocity);
-        let totalTicks = 0;
-        let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = gravity - tickVelocity.y * airResistance.y;
-        let offsetZ: number = -tickVelocity.z * airResistance.h;
-
-        while (totalTicks < 150) {
-            points.push(origin.clone());
-            pointVelocities.push(rawVelocity.clone());
-
-            offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
-            offsetZ = -tickVelocity.z * airResistance.h;
-
-            if (blockChecking && blockChecker) {
-                blockHit = blockChecker.check(origin, nextPosition)?.block;
-                if (blockHit) break;
-            }
-
-            intersectPos = entityAABB.intersectsSegment(origin, nextPosition);
-            if (intersectPos) break;
-            
-
-            if (rawVelocity.y < 0 && origin.y < 0) break;
-
-            origin.add(rawVelocity);
-            rawVelocity.translate(offsetX, offsetY, offsetZ);
-            if (totalTicks % 1 === 0) tickVelocity = rawVelocity;
-            nextPosition.add(rawVelocity);
-        }
-
-        return { positions: points, velocities: pointVelocities, blockHit, intersectPos };
-    }
-
-    static calculateShotForPoints(
-        origin: Vec3,
-        rawVelocity: Vec3,
-        gravity: number,
-        blockChecker?: InterceptFunctions,
-        blockChecking: boolean = false
-    ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null } {
-        let points: Vec3[] = [];
-        let pointVelocities: Vec3[] = [];
-        let blockHit: Block | null = null;
-        let tickVelocity = rawVelocity.clone();
-        let nextPosition = origin.clone().add(rawVelocity);
-        let totalTicks = 0;
-        let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = gravity - tickVelocity.y * airResistance.y;
-        let offsetZ: number = -tickVelocity.z * airResistance.h;
-
-        while (totalTicks < 150) {
-            points.push(origin.clone());
-            pointVelocities.push(rawVelocity.clone());
-
-            offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
-            offsetZ = -tickVelocity.z * airResistance.h;
-
-            if (blockChecking && blockChecker) {
-                blockHit = blockChecker.check(origin, nextPosition)?.block;
-                if (blockHit) break;
-            }
-
-            if (rawVelocity.y < 0 && origin.y < 0) break;
-
-            origin.add(rawVelocity);
-            rawVelocity.translate(offsetX, offsetY, offsetZ);
-            if (totalTicks % 1 === 0) tickVelocity = rawVelocity;
-            nextPosition.add(rawVelocity);
-        }
-
-        return { positions: points, velocities: pointVelocities, blockHit };
-    }
-
-    //TODO: Optimize. More accurate than hawkeye's, but anywhere from 1.5x to 7x as expensive.
-    public newCalcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
+    public calcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
         if (!(target instanceof AABB)) target = getEntityAABB(target);
         // height = height = 1.62 ? height + 0.18 : 0;
         const entityAABB = target;
@@ -379,79 +224,6 @@ export class Shot {
             intersectPos,
             closestPoint,
             totalTicks,
-        };
-    }
-
-    public calculateShotToEntity(position: Vec3, tryInterceptBlock = false) {
-        const { hDistance: xDestination, yDistance: yDestination } = getTargetDistance(this.initialPos, position);
-        let precisionFactor = 1;
-        let Vo = vectorMagnitude(this.initialVel);
-        let gravity = this.gravity / precisionFactor;
-        let factorY = airResistance.y / precisionFactor;
-        let factorH = airResistance.h / precisionFactor;
-
-        // Vo => Vector total velocity (X,Y,Z)
-        let Voy = getVoy(Vo, this.initialPitch);
-        let Vox = getVox(Vo, this.initialPitch);
-        let Vy = Voy / precisionFactor;
-        let Vx = Vox / precisionFactor;
-        let ProjectileGrade: number;
-        let nearestDistance = Math.sqrt(Math.pow(Vy - yDestination, 2) + Math.pow(Vx - xDestination, 2));
-        let totalTicks = 0;
-
-        let blockInTrajectory: Block | null = null;
-        let closestArrowPoint: Vec3 | null = null;
-        let arrowPoints: Vec3[] = [];
-        let arrowPointVels: Vec3[] = [];
-        const startPosition = this.initialPos;
-        while (totalTicks < 150) {
-            const currentTickDistance = Math.sqrt(Math.pow(Vy - yDestination, 2) + Math.pow(Vx - xDestination, 2));
-
-            if (currentTickDistance < nearestDistance) nearestDistance = currentTickDistance;
-            if (nearestDistance < 4) precisionFactor = 5;
-            if (nearestDistance > 4) precisionFactor = 1;
-
-            totalTicks += 1 / precisionFactor;
-            gravity = this.gravity / precisionFactor;
-            factorY = airResistance.y / precisionFactor;
-            factorH = airResistance.h / precisionFactor;
-
-            Vo = getVo(Vox, Voy, gravity);
-            ProjectileGrade = getGrades(Vo, Voy, gravity);
-
-            Voy = getVoy(Vo, degreesToRadians(ProjectileGrade), Voy * factorY);
-            Vox = getVox(Vo, degreesToRadians(ProjectileGrade), Vox * factorH);
-
-            Vy += Voy / precisionFactor;
-            Vx += Vox / precisionFactor;
-
-            const x = startPosition.x - Math.sin(this.initialYaw) * Vx;
-            const z = startPosition.z - (Math.sin(this.initialYaw) * Vx) / Math.tan(this.initialYaw);
-            const y = startPosition.y + Vy;
-            // console.log("OLD INFO:", Vo, y, Vy)
-            const currentArrowPosition = new Vec3(x, y, z);
-
-            if (nearestDistance === currentTickDistance) closestArrowPoint = currentArrowPosition;
-
-            arrowPoints.push(currentArrowPosition);
-            arrowPointVels.push(currentArrowPosition.minus(arrowPoints[arrowPoints.length === 1 ? 0 : arrowPoints.length - 2]));
-
-            if (tryInterceptBlock && this.interceptCalcs) {
-                const previusArrowPositionIntercept = arrowPoints[arrowPoints.length === 1 ? 0 : arrowPoints.length - 2];
-                blockInTrajectory = this.interceptCalcs.check(previusArrowPositionIntercept, currentArrowPosition)?.block;
-            }
-
-            // Arrow passed player || Voy (arrow is going down and passed player) || Detected solid block
-            if (Vx > xDestination || (Voy < 0 && yDestination > Vy) || !!blockInTrajectory) break;
-        }
-        this.points = arrowPoints;
-        this.pointVelocities = arrowPointVels;
-
-        return {
-            nearestDistance: nearestDistance,
-            totalTicks: totalTicks,
-            blockInTrayect: blockInTrajectory,
-            closestArrowPoint,
         };
     }
 }
