@@ -22,17 +22,9 @@ import { trajectoryInfo, airResistance } from "./calc/constants";
 import { getEntityAABB } from "./calc/entityUtils";
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
+import { AABBComponents, BasicShotInfo, ProjectileMotion, ShotEntity } from "./types";
 
-export type ShotEntity = { position: Vec3; velocity: Vec3; yaw?: number; pitch?: number; heldItem?: Item | null };
-export type AABBComponents = { position: Vec3; height: number; width?: number };
-export type ProjectileMotion = { position: Vec3; velocity: Vec3; gravity?: number };
-export type BasicShotInfo = {
-    nearestDistance: number;
-    blockingBlock: Block | null;
-    intersectPos: Vec3 | null;
-    closestPoint: Vec3 | null;
-    totalTicks: number;
-};
+
 const emptyVec = new Vec3(0, 0, 0);
 
 /**
