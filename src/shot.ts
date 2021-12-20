@@ -17,9 +17,9 @@ import {
     getPremonition,
     VoToVox,
     notchianVel,
-} from "../calc/mathUtilts";
-import { trajectoryInfo, airResistance } from "../calc/constants";
-import { getEntityAABB } from "../calc/entityUtils";
+} from "./calc/mathUtilts";
+import { trajectoryInfo, airResistance } from "./calc/constants";
+import { getEntityAABB } from "./calc/entityUtils";
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 
