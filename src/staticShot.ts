@@ -61,16 +61,18 @@ export class StaticShot {
         let tickVelocity = rawVelocity.clone();
         let nextPosition = origin.clone().add(rawVelocity);
         let totalTicks = 0;
+        let newGravity: number = gravity + gravity * airResistance.y;
         let offsetX: number = -tickVelocity.x * airResistance.h;
         let offsetY: number = gravity - tickVelocity.y * airResistance.y;
         let offsetZ: number = -tickVelocity.z * airResistance.h;
 
-        while (totalTicks < 150) {
+        while (totalTicks < 300) {
             points.push(origin.clone());
             pointVelocities.push(rawVelocity.clone());
 
+            newGravity = gravity + gravity * airResistance.y;
             offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
+            offsetY = -tickVelocity.y * airResistance.y - newGravity;
             offsetZ = -tickVelocity.z * airResistance.h;
 
             if (blockChecking && blockChecker) {
@@ -106,16 +108,18 @@ export class StaticShot {
         let tickVelocity = rawVelocity.clone();
         let nextPosition = origin.clone().add(rawVelocity);
         let totalTicks = 0;
+        let newGravity: number = gravity + gravity * airResistance.y;
         let offsetX: number = -tickVelocity.x * airResistance.h;
         let offsetY: number = gravity - tickVelocity.y * airResistance.y;
         let offsetZ: number = -tickVelocity.z * airResistance.h;
 
-        while (totalTicks < 150) {
+        while (totalTicks < 300) {
             points.push(origin.clone());
             pointVelocities.push(rawVelocity.clone());
 
+            newGravity = gravity + gravity * airResistance.y;
             offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
+            offsetY = -tickVelocity.y * airResistance.y - newGravity;
             offsetZ = -tickVelocity.z * airResistance.h;
 
             if (blockChecking && blockChecker) {
