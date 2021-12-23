@@ -10,7 +10,7 @@ export const trajectoryInfo: ProjectileInfos = {
     trident: { v0: 2.5, g: 0.05 },
     snowball: {v0: 1.5, g: 0.04 },
     egg: {v0: 1.5, g: 0.04 },
-    ender_pearl: { v0: 1.5, g: 0.04 },
+    ender_pearl: { v0: 1.5, g: 0.0375 },
     splash_potion: { v0: 0.4, g: 0.03 },
 
 };
