@@ -30,3 +30,14 @@ export const airResistance = {
     y: 0.01,
     h: 0.01
 }
+
+
+export enum BlockFace {
+    UNKNOWN = -999,
+    BOTTOM = 0,
+    TOP = 1,
+    NORTH = 2,
+    SOUTH = 3,
+    WEST = 4,
+    EAST = 5,
+}

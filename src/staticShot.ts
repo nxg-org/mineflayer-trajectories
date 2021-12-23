@@ -2,7 +2,7 @@ import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
 import { airResistance } from "./calc/constants";
-import { getEntityAABB } from "./calc/entityUtils";
+import { getEntityAABB } from "./calc/aabbUtil";
 import { AABBComponents } from "./types";
 
 export class StaticShot {

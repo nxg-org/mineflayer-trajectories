@@ -19,7 +19,6 @@ bot.on("entityMoved", async (orgEntityData) => {
     if (checkedEntities[orgEntityData.id]) return;
     checkedEntities[orgEntityData.id] = orgEntityData;
 
-    console.log(orgEntityData.name);
     if (["arrow", "firework_rocket", "egg"].includes(orgEntityData.name!)) {
         for (const entity of Object.values(bot.entities)) {
             const hit = ShotFactory.customGravity(
@@ -29,7 +28,7 @@ bot.on("entityMoved", async (orgEntityData) => {
             ).hitsEntityWithPrediction(entity, emptyVec);
             if (!hit) continue;
             if (hit.intersectPos) {
-                console.log("Arrow is going to hit entity", entity.name, "at position:", hit.intersectPos);
+                console.log(orgEntityData.name, "is going to hit entity", entity.username ?? entity.name, "at position:", hit.intersectPos);
                 bot.chat(`/particle note ${hit.closestPoint!.x} ${hit.closestPoint!.y + 2} ${hit.closestPoint!.z} 0 1 0 1 5`);
             }
         }

@@ -1,6 +1,6 @@
 import { Vec3 } from "vec3";
 import type { Bot } from "mineflayer";
-import type { Block } from "prismarine-block";
+import { Block } from "prismarine-block";
 import type { Entity } from "prismarine-entity";
 import type { Item } from "prismarine-item";
 import {
@@ -18,8 +18,8 @@ import {
     VoToVox,
     notchianVel,
 } from "./calc/mathUtilts";
-import { trajectoryInfo, airResistance } from "./calc/constants";
-import { getEntityAABB } from "./calc/entityUtils";
+import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
+import { getBlockAABB, getBlockPosAABB, getEntityAABB } from "./calc/aabbUtil";
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { AABBComponents, BasicShotInfo, ProjectileMotion, ShotEntity } from "./types";
@@ -167,29 +167,30 @@ export class Shot {
         let closestPoint: Vec3 | null = null;
 
         let totalTicks = 0;
-        let gravity = this.gravity;
+        let gravity = this.gravity + this.gravity + this.gravity * airResistance.y;
         let offsetX: number = -perTickVel.x * airResistance.h;
         let offsetY: number = -perTickVel.y * airResistance.y - gravity;
         let offsetZ: number = -perTickVel.z * airResistance.h;
 
         const entityDist = target.xzDistanceTo(this.initialPos);
-        while (totalTicks < 150) {
+        while (totalTicks < 300) {
             const testDist = entityAABB.distanceTo(currentPosition);
             if (nearestDistance !== testDist) {
                 if (nearestDistance > 6) {
                     totalTicks += 1;
-                    gravity = this.gravity;
+                    gravity = this.gravity + this.gravity * airResistance.y;
                     offsetX = -perTickVel.x * airResistance.h;
                     offsetY = -perTickVel.y * airResistance.y - gravity;
                     offsetZ = -perTickVel.z * airResistance.h;
                 } else {
                     totalTicks += 0.2;
-                    gravity = this.gravity * 0.2;
+                    gravity = (this.gravity + this.gravity * airResistance.y) * 0.2
                     offsetX = -perTickVel.x * (airResistance.h * 0.2);
                     offsetY = -perTickVel.y * (airResistance.y * 0.2) - gravity;
                     offsetZ = -perTickVel.z * (airResistance.h * 0.2);
                 }
             }
+
 
             if (nearestDistance > testDist) {
                 nearestDistance = testDist;
@@ -200,6 +201,8 @@ export class Shot {
                 blockingBlock = this.interceptCalcs.check(currentPosition, nextPosition)?.block;
             }
 
+            if (blockingBlock) break;
+
             intersectPos = entityAABB.intersectsSegment(currentPosition, nextPosition);
             if (intersectPos) {
                 nearestDistance = 0;
@@ -207,7 +210,7 @@ export class Shot {
                 break;
             }
 
-            if (blockingBlock) break;
+    
 
             currentDist = currentPosition.xzDistanceTo(this.initialPos);
             if (currentDist > entityDist || (currentVelocity.y < 0 && currentPosition.y - target.minY < 0)) break;
