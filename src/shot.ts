@@ -113,14 +113,12 @@ export class Shot {
             .filter((box) => !!box.xzIntersectsRay(this.initialPos, this.initialVel));
     }
 
-    public hitEntitiesCheck(...entities: AABBComponents[]) {
-        let shots = [];
+    public hitEntitiesCheck(blockCheck: boolean = false, ...entities: AABBComponents[]) {
+        const shots = [];
         const possibleEntities = this.aabbHitCheckXZ(...entities);
         for (const entity of possibleEntities) {
-            if (entity) {
-                const shotInfo = this.calcToEntity(entity);
-                if (shotInfo.intersectPos) shots.push({ entity: entity, shotInfo: shotInfo });
-            }
+            const shotInfo = this.calcToEntity(entity, blockCheck);
+            if (shotInfo.intersectPos) shots.push({ entity: entity, shotInfo: shotInfo });
         }
         return shots;
     }
@@ -132,16 +130,18 @@ export class Shot {
         if (extras.yawChecked) {
             return this.calcToEntity(entity, extras.blockCheck);
         } else {
-            return this.hitEntitiesCheck(entity)[0]?.shotInfo ?? null;
+            return this.hitEntitiesCheck(extras.blockCheck, entity)[0]?.shotInfo ?? null;
         }
     }
 
     //TODO: Make this *not* lazy.
-    public hitsEntities(...entities: AABBComponents[]) {
-        for (const info of this.hitEntitiesCheck(...entities)) {
-            const found = entities.find(e => getEntityAABB(e) === info.entity)
-            return {entity: found, shotInfo: info.shotInfo}
+    public hitsEntities(blockCheck: boolean = false, ...entities: AABBComponents[]) {
+        const hits = [];
+        for (const info of this.hitEntitiesCheck(blockCheck, ...entities)) {
+            const found = entities.find((e) => getEntityAABB(e).equals(info.entity))!;
+            hits.push({ entity: found, shotInfo: info.shotInfo });
         }
+        return hits;
     }
 
     public hitsEntityWithPrediction({ position, height, width }: AABBComponents, avgSpeed: Vec3): BasicShotInfo {
