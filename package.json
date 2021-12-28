@@ -1,6 +1,6 @@
 {
     "name": "@nxg-org/mineflayer-trajectories",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "description": "Static shot class for mineflayer.",
     "keywords": [
         "mineflayer",
