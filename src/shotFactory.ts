@@ -24,6 +24,12 @@ export class ShotFactory {
         }
     }
 
+    //TODO: Support tridents. Lazy rn.
+    static fromMob({ position, velocity, yaw, pitch }: ShotEntity, interceptCalcs?: InterceptFunctions): Shot {
+        const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, 1.6);
+        return new Shot(velocity, { position: position.offset(0, 1.64, 0), velocity: projVel, gravity: 0.05 }, interceptCalcs);
+    }
+
     static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {
         const gravity = projectileGravity[name!];
         if (!!gravity) return new Shot(velocity, { position, velocity, gravity }, interceptCalcs);
