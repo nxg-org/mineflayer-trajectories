@@ -12,7 +12,6 @@ const bot = createBot({
     port: Number(process.argv[3]) ?? 25565,
 });
 
-const tracker = new ProjectileTracker(bot);
 
 let checkedEntities: { [entityId: number]: Entity } = {};
 let intercepter = new InterceptFunctions(bot);
@@ -36,33 +35,3 @@ bot.on("entityMoved", async (orgEntityData) => {
     }
 });
 
-function equipShield() {
-    const shield = bot.util.inv.getAllItemsExceptCurrent("off-hand").find((e) => e.name === "shield");
-    if (shield) {
-        bot.util.inv.customEquip(shield, "off-hand");
-    }
-}
-
-bot.on("physicsTick", () => {
-    const target = bot.nearestEntity(e => e.username === "Generel_Schwerz")
-    if (target) console.log(tracker.getProjectileDestination(target))
-    // const entity = tracker.getHighestPriorityEntity();
-    // if (entity) {
-    //     bot.lookAt(entity.entity.position);
-    //     // if (!bot.util.entity.isOffHandActive()) bot.activateItem(true);
-    // } else {
-    //     // bot.deactivateItem();
-    // }
-});
-
-bot.on("entityMoved", async (entity) => {
-    if (!Object.keys(projectileGravity).includes(entity.name!)) return;
-    // const pos = tracker.getHighestPriorityProjectile()?.entity?.position
-    // if (pos) {
-    //     bot.lookAt(pos, true);
-    //     equipShield();
-    //     if (!bot.util.entity.isOffHandActive()) bot.activateItem(true);
-    // } else {
-    //     bot.deactivateItem();
-    // }
-});
