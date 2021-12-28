@@ -1,6 +1,6 @@
 import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Vec3 } from "vec3";
-import { trajectoryInfo } from "./calc/constants";
+import { projectileGravity, trajectoryInfo } from "./calc/constants";
 import { yawPitchAndSpeedToDir } from "./calc/mathUtilts";
 import { Shot } from "./shot";
 import { ProjectileInfo, ProjectileMotion, ShotEntity } from "./types";
@@ -25,8 +25,8 @@ export class ShotFactory {
     }
 
     static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {
-        const info = trajectoryInfo[name!];
-        if (!!info) return new Shot(velocity, { position, velocity, gravity: info.g }, interceptCalcs);
+        const gravity = projectileGravity[name!];
+        if (!!gravity) return new Shot(velocity, { position, velocity, gravity }, interceptCalcs);
         else throw `Invalid projectile type: ${name}`;
     }
 }
