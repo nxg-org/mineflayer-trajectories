@@ -5,7 +5,6 @@ import { Vec3 } from "vec3";
 import type { Entity } from "prismarine-entity";
 import { ShotFactory } from "./shotFactory";
 import { vectorMagnitude } from "./calc/mathUtilts";
-import { ProjectileTracker } from "./test";
 
 const bot = createBot({
     username: "shot-testing",
