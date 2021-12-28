@@ -11,23 +11,27 @@ export class ShotFactory {
     static fromPlayer = ShotFactory.fromShootingPlayer;
 
     static fromShootingPlayer(
-        { position, yaw, pitch, velocity, heldItem }: ShotEntity,
+        { position, yaw, pitch, velocity, heldItem, onGround }: ShotEntity,
         interceptCalcs?: InterceptFunctions,
         weapon?: string
     ): Shot {
         const info = trajectoryInfo[weapon! ?? heldItem?.name];
         if (!!info) {
+            onGround ??= true;
             const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, info.v0);
-            return new Shot(velocity, { position: position.offset(0, info.ph, 0), velocity: projVel, gravity: info.g }, interceptCalcs);
+            const newOrgVel = velocity.clone().translate(0, onGround ? -velocity.y : 0, 0);
+            return new Shot(newOrgVel, { position: position.offset(0, info.ph, 0), velocity: projVel, gravity: info.g }, interceptCalcs);
         } else {
             throw "Invalid weapon: " + weapon ?? heldItem?.name;
         }
     }
 
     //TODO: Support tridents. Lazy rn.
-    static fromMob({ position, velocity, yaw, pitch }: ShotEntity, interceptCalcs?: InterceptFunctions): Shot {
+    static fromMob({ position, velocity, yaw, pitch, onGround }: ShotEntity, interceptCalcs?: InterceptFunctions): Shot {
+        onGround ??= true;
         const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, 1.6);
-        return new Shot(velocity, { position: position.offset(0, 1.64, 0), velocity: projVel, gravity: 0.05 }, interceptCalcs);
+        const newOrgVel = velocity.clone().translate(0, onGround ? -velocity.y : 0, 0);
+        return new Shot(newOrgVel, { position: position.offset(0, 1.64, 0), velocity: projVel, gravity: 0.05 }, interceptCalcs);
     }
 
     static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {
