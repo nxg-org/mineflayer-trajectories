@@ -152,6 +152,66 @@ export class Shot {
         return calcPredictShot
     }
 
+
+    /**
+     * 
+     * @param {boolean} blockChecking Whether to check for blocks or not.
+     * @param {Entity[]} Entity list of entities from Prismarine-entity.
+     * @returns TODO: Typing
+     */
+    public calcToIntercept(blockChecking: boolean = false, entities: Entity[] = []) {
+        const entityAABBs = entities.sort((a, b) => this.initialPos.distanceTo(a.position) - this.initialPos.distanceTo(b.position)).map(e => getEntityAABB(e)) //slightly inaccurate.
+        let currentPosition = this.initialPos.clone();
+        let currentVelocity = this.initialVel.clone();
+        let nextPosition = currentPosition.clone().add(currentVelocity);
+        let hitPos: Vec3 | null = null;
+        let block: Block | null = null;
+
+        let totalTicks = 0;
+        const gravity = this.gravity // + this.gravity * airResistance.y;
+        let offsetX: number = -currentVelocity.x * airResistance.h;
+        let offsetY: number = -currentVelocity.y * airResistance.y - gravity;
+        let offsetZ: number = -currentVelocity.z * airResistance.h;
+
+        while (totalTicks < 300) {
+
+            totalTicks += 1;
+            offsetX = -currentVelocity.x * airResistance.h;
+            offsetY = -currentVelocity.y * airResistance.y - gravity;
+            offsetZ = -currentVelocity.z * airResistance.h;
+
+            if (blockChecking && this.interceptCalcs) {
+                block = this.interceptCalcs.check(currentPosition, nextPosition)?.block;
+            }
+
+            if (block){
+                const blockAABB = getBlockAABB(block)
+                hitPos = blockAABB.intersectsSegment(currentPosition, nextPosition)
+                break;
+            }
+
+            
+            //TODO:  Make this check more efficient by checking from line, not from entity AABBs.
+            const hits = entityAABBs.map(aabb => aabb.intersectsSegment(currentPosition, nextPosition)).filter(vec => !!vec)
+            if (hits.length > 0) {
+                hitPos = hits[0] //sorted for distance already.
+                break;
+            }
+
+            if (currentVelocity.y < 0 && currentPosition.y < 0) break;
+
+            currentPosition.add(currentVelocity);
+            currentVelocity.translate(offsetX, offsetY, offsetZ);
+            nextPosition.add(currentVelocity);
+        }
+
+        return {
+            block,
+            hitPos,
+            totalTicks,
+        };
+    }
+
     public calcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
         if (!(target instanceof AABB)) target = getEntityAABB(target);
         // height = height = 1.62 ? height + 0.18 : 0;

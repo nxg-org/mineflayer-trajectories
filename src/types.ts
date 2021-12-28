@@ -8,8 +8,8 @@ export type ProjectileMotion = { position: Vec3; velocity: Vec3; gravity?: numbe
 export type ProjectileInfo =  { position: Vec3; velocity: Vec3; name?: string }
 export type BasicShotInfo = {
     nearestDistance: number;
-    blockingBlock: Block | null;
-    intersectPos: Vec3 | null;
-    closestPoint: Vec3 | null;
+    blockingBlock?: Block | null;
+    intersectPos?: Vec3 | null;
+    closestPoint?: Vec3 | null;
     totalTicks: number;
 };
