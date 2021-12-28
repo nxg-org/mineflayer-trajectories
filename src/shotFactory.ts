@@ -36,7 +36,7 @@ export class ShotFactory {
 
     static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {
         const gravity = projectileGravity[name!];
-        if (!!gravity) return new Shot(velocity, { position, velocity, gravity }, interceptCalcs);
+        if (!!gravity) return new Shot(emptyVec, { position, velocity, gravity }, interceptCalcs);
         else throw `Invalid projectile type: ${name}`;
     }
 }
