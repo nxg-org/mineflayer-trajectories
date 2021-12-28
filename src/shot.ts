@@ -24,7 +24,6 @@ import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { AABBComponents, BasicShotInfo, ProjectileMotion, ShotEntity } from "./types";
 
-
 const emptyVec = new Vec3(0, 0, 0);
 
 /**
@@ -80,7 +79,6 @@ export class Shot {
         this.pointVelocities = [];
         this.interceptCalcs = interceptCalcs;
     }
-
 
     public canCollisionDetect(): boolean {
         return !!this.interceptCalcs;
@@ -138,6 +136,14 @@ export class Shot {
         }
     }
 
+    //TODO: Make this *not* lazy.
+    public hitsEntities(...entities: AABBComponents[]) {
+        for (const info of this.hitEntitiesCheck(...entities)) {
+            const found = entities.find(e => getEntityAABB(e) === info.entity)
+            return {entity: found, shotInfo: info.shotInfo}
+        }
+    }
+
     public hitsEntityWithPrediction({ position, height, width }: AABBComponents, avgSpeed: Vec3): BasicShotInfo {
         //Ignore XZ check as we will check two different XZ coords.
         const calcShot = this.calcToEntity({ position, height, width });
@@ -149,18 +155,19 @@ export class Shot {
         );
         const newAABB = getEntityAABB({ position: newTarget, height, width });
         const calcPredictShot = this.calcToEntity(newAABB, true);
-        return calcPredictShot
+        return calcPredictShot;
     }
 
-
     /**
-     * 
+     *
      * @param {boolean} blockChecking Whether to check for blocks or not.
      * @param {Entity[]} Entity list of entities from Prismarine-entity.
      * @returns TODO: Typing
      */
     public calcToIntercept(blockChecking: boolean = false, entities: Entity[] = []) {
-        const entityAABBs = entities.sort((a, b) => this.initialPos.distanceTo(a.position) - this.initialPos.distanceTo(b.position)).map(e => getEntityAABB(e)) //slightly inaccurate.
+        const entityAABBs = entities
+            .sort((a, b) => this.initialPos.distanceTo(a.position) - this.initialPos.distanceTo(b.position))
+            .map((e) => getEntityAABB(e)); //slightly inaccurate.
         let currentPosition = this.initialPos.clone();
         let currentVelocity = this.initialVel.clone();
         let nextPosition = currentPosition.clone().add(currentVelocity);
@@ -168,13 +175,12 @@ export class Shot {
         let block: Block | null = null;
 
         let totalTicks = 0;
-        const gravity = this.gravity // + this.gravity * airResistance.y;
+        const gravity = this.gravity; // + this.gravity * airResistance.y;
         let offsetX: number = -currentVelocity.x * airResistance.h;
         let offsetY: number = -currentVelocity.y * airResistance.y - gravity;
         let offsetZ: number = -currentVelocity.z * airResistance.h;
 
         while (totalTicks < 300) {
-
             totalTicks += 1;
             offsetX = -currentVelocity.x * airResistance.h;
             offsetY = -currentVelocity.y * airResistance.y - gravity;
@@ -184,17 +190,16 @@ export class Shot {
                 block = this.interceptCalcs.check(currentPosition, nextPosition)?.block;
             }
 
-            if (block){
-                const blockAABB = getBlockAABB(block)
-                hitPos = blockAABB.intersectsSegment(currentPosition, nextPosition)
+            if (block) {
+                const blockAABB = getBlockAABB(block);
+                hitPos = blockAABB.intersectsSegment(currentPosition, nextPosition);
                 break;
             }
 
-            
             //TODO:  Make this check more efficient by checking from line, not from entity AABBs.
-            const hits = entityAABBs.map(aabb => aabb.intersectsSegment(currentPosition, nextPosition)).filter(vec => !!vec)
+            const hits = entityAABBs.map((aabb) => aabb.intersectsSegment(currentPosition, nextPosition)).filter((vec) => !!vec);
             if (hits.length > 0) {
-                hitPos = hits[0] //sorted for distance already.
+                hitPos = hits[0]; //sorted for distance already.
                 break;
             }
 
@@ -227,7 +232,7 @@ export class Shot {
         let closestPoint: Vec3 | null = null;
 
         let totalTicks = 0;
-        let gravity = this.gravity // + this.gravity * airResistance.y;
+        let gravity = this.gravity; // + this.gravity * airResistance.y;
         let offsetX: number = -perTickVel.x * airResistance.h;
         let offsetY: number = -perTickVel.y * airResistance.y - gravity;
         let offsetZ: number = -perTickVel.z * airResistance.h;
@@ -238,19 +243,18 @@ export class Shot {
             if (nearestDistance !== testDist) {
                 if (nearestDistance > 6) {
                     totalTicks += 1;
-                    gravity = this.gravity // - this.gravity * airResistance.y;
+                    gravity = this.gravity; // - this.gravity * airResistance.y;
                     offsetX = -perTickVel.x * airResistance.h;
                     offsetY = -perTickVel.y * airResistance.y - gravity;
                     offsetZ = -perTickVel.z * airResistance.h;
                 } else {
                     totalTicks += 0.2;
-                    gravity = (this.gravity * 0.2)//- this.gravity * airResistance.y) * 0.2
+                    gravity = this.gravity * 0.2; //- this.gravity * airResistance.y) * 0.2
                     offsetX = -perTickVel.x * (airResistance.h * 0.2);
                     offsetY = -perTickVel.y * (airResistance.y * 0.2) - gravity;
                     offsetZ = -perTickVel.z * (airResistance.h * 0.2);
                 }
             }
-
 
             if (nearestDistance > testDist) {
                 nearestDistance = testDist;
@@ -269,8 +273,6 @@ export class Shot {
                 closestPoint = intersectPos;
                 break;
             }
-
-    
 
             currentDist = currentPosition.xzDistanceTo(this.initialPos);
             if (currentDist > entityDist || (currentVelocity.y < 0 && currentPosition.y - target.minY < 0)) break;
