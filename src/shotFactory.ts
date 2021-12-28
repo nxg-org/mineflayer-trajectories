@@ -3,13 +3,12 @@ import { Vec3 } from "vec3";
 import { trajectoryInfo } from "./calc/constants";
 import { yawPitchAndSpeedToDir } from "./calc/mathUtilts";
 import { Shot } from "./shot";
-import { ProjectileMotion, ShotEntity } from "./types";
+import { ProjectileInfo, ProjectileMotion, ShotEntity } from "./types";
 
 const emptyVec = new Vec3(0, 0, 0);
 
-
 export class ShotFactory {
-
+    static fromPlayer = ShotFactory.fromShootingPlayer;
 
     static fromShootingPlayer(
         { position, yaw, pitch, velocity, heldItem }: ShotEntity,
@@ -19,26 +18,15 @@ export class ShotFactory {
         const info = trajectoryInfo[weapon! ?? heldItem?.name];
         if (!!info) {
             const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, info.v0);
-            return new Shot(velocity, { position: position.offset(0, 1.62, 0), velocity: projVel, gravity: info.g }, interceptCalcs);
+            return new Shot(velocity, { position: position.offset(0, info.ph, 0), velocity: projVel, gravity: info.g }, interceptCalcs);
         } else {
-            throw "Invalid weapon";
+            throw "Invalid weapon: " + weapon ?? heldItem?.name;
         }
     }
 
-    static fromWeapon({ position, velocity }: ProjectileMotion, interceptCalcs?: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.05 }, interceptCalcs);
+    static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {
+        const info = trajectoryInfo[name!];
+        if (!!info) return new Shot(velocity, { position, velocity, gravity: info.g }, interceptCalcs);
+        else throw `Invalid projectile type: ${name}`;
     }
-
-    static fromThrowable({ position, velocity }: ProjectileMotion, interceptCalcs?: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.03 }, interceptCalcs);
-    }
-
-    static withoutGravity({ position, velocity }: ProjectileMotion, interceptCalcs?: InterceptFunctions): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity: 0.00 }, interceptCalcs);
-    }
-
-    static customGravity({ position, velocity }: ProjectileMotion, gravity: number, interceptCalcs?: InterceptFunctions,): Shot {
-        return new Shot(emptyVec, { position, velocity, gravity }, interceptCalcs);
-    }
-
 }

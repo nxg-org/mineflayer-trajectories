@@ -167,7 +167,7 @@ export class Shot {
         let closestPoint: Vec3 | null = null;
 
         let totalTicks = 0;
-        let gravity = this.gravity + this.gravity * airResistance.y;
+        let gravity = this.gravity // + this.gravity * airResistance.y;
         let offsetX: number = -perTickVel.x * airResistance.h;
         let offsetY: number = -perTickVel.y * airResistance.y - gravity;
         let offsetZ: number = -perTickVel.z * airResistance.h;
@@ -178,13 +178,13 @@ export class Shot {
             if (nearestDistance !== testDist) {
                 if (nearestDistance > 6) {
                     totalTicks += 1;
-                    gravity = this.gravity - this.gravity * airResistance.y;
+                    gravity = this.gravity // - this.gravity * airResistance.y;
                     offsetX = -perTickVel.x * airResistance.h;
                     offsetY = -perTickVel.y * airResistance.y - gravity;
                     offsetZ = -perTickVel.z * airResistance.h;
                 } else {
                     totalTicks += 0.2;
-                    gravity = (this.gravity - this.gravity * airResistance.y) * 0.2
+                    gravity = (this.gravity * 0.2)//- this.gravity * airResistance.y) * 0.2
                     offsetX = -perTickVel.x * (airResistance.h * 0.2);
                     offsetY = -perTickVel.y * (airResistance.y * 0.2) - gravity;
                     offsetZ = -perTickVel.z * (airResistance.h * 0.2);
