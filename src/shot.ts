@@ -118,8 +118,7 @@ export class Shot {
         const shots = [];
         const possibleEntities = this.aabbHitCheckXZ(...entities);
         for (const entity of possibleEntities) {
-            const shotInfo = this.calcToEntity(entity, blockCheck);
-            if (shotInfo.intersectPos) shots.push({ entity: entity, shotInfo: shotInfo });
+            shots.push({ entity, shotInfo: this.calcToEntity(entity, blockCheck) });
         }
         return shots;
     }
