@@ -1,3 +1,4 @@
+import { Entity } from "minecraft-data";
 import type { Block } from "prismarine-block";
 import type { Item } from "prismarine-item";
 import type { Vec3 } from "vec3";
@@ -13,3 +14,8 @@ export type BasicShotInfo = {
     closestPoint?: Vec3 | null;
     totalTicks: number;
 };
+
+export type BoundedShotInfo = {
+    entity: {position: Vec3, height: number, width?: number},
+    shotInfo: BasicShotInfo
+}

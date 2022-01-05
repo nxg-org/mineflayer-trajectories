@@ -22,7 +22,7 @@ import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
 import { getBlockAABB, getBlockPosAABB, getEntityAABB } from "./calc/aabbUtil";
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
-import { AABBComponents, BasicShotInfo, ProjectileMotion, ShotEntity } from "./types";
+import { AABBComponents, BasicShotInfo, BoundedShotInfo, ProjectileMotion, ShotEntity } from "./types";
 
 const emptyVec = new Vec3(0, 0, 0);
 
@@ -106,14 +106,14 @@ export class Shot {
             .filter((e) => this.HitCheckXZ(e));
     }
 
-    private aabbHitCheckXZ(...aabbs: AABBComponents[] | AABB[]) {
+    private aabbHitCheckXZ(...aabbs: AABBComponents[] | AABB[]): AABB[] {
         if (!(aabbs instanceof AABB)) aabbs = (aabbs as AABBComponents[]).map(getEntityAABB);
         return (aabbs as AABB[])
             .sort((a, b) => a.xzDistanceTo(this.initialPos) - b.xzDistanceTo(this.initialPos))
             .filter((box) => !!box.xzIntersectsRay(this.initialPos, this.initialVel));
     }
 
-    public hitEntitiesCheck(blockCheck: boolean = false, ...entities: AABBComponents[]) {
+    public hitEntitiesCheck(blockCheck: boolean = false, ...entities: AABBComponents[]): { entity: AABB; shotInfo: BasicShotInfo }[] {
         const shots = [];
         const possibleEntities = this.aabbHitCheckXZ(...entities);
         for (const entity of possibleEntities) {
@@ -126,16 +126,17 @@ export class Shot {
     public hitsEntity(
         entity: AABBComponents,
         extras: { yawChecked: boolean; blockCheck: boolean } = { yawChecked: false, blockCheck: true }
-    ): BasicShotInfo | null {
+    ): BoundedShotInfo | null {
         if (extras.yawChecked) {
-            return this.calcToEntity(entity, extras.blockCheck);
+            return { entity: entity, shotInfo: this.calcToEntity(entity, extras.blockCheck) };
         } else {
-            return this.hitEntitiesCheck(extras.blockCheck, entity)[0]?.shotInfo ?? null;
+            const shotInfo = this.hitEntitiesCheck(extras.blockCheck, entity)[0]?.shotInfo;
+            return !!shotInfo ? { entity, shotInfo } : null;
         }
     }
 
     //TODO: Make this *not* lazy.
-    public hitsEntities(blockCheck: boolean = false, ...entities: AABBComponents[]) {
+    public hitsEntities(blockCheck: boolean = false, ...entities: AABBComponents[]): BoundedShotInfo[] {
         const hits = [];
         for (const info of this.hitEntitiesCheck(blockCheck, ...entities)) {
             const found = entities.find((e) => getEntityAABB(e).equals(info.entity))!;
