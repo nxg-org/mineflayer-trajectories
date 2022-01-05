@@ -2,7 +2,8 @@ import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
 import { airResistance } from "./calc/constants";
-import { getEntityAABB } from "./calc/aabbUtil";
+import { AABBUtils} from "@nxg-org/mineflayer-util-plugin"
+const {getEntityAABBRaw} = AABBUtils
 import { AABBComponents } from "./types";
 
 export class StaticShot {
@@ -18,7 +19,7 @@ export class StaticShot {
     ): { closestPoint: Vec3; blockHit: Block | null } {
         if (points.length === 0 || notchianPointVecs.length === 0) throw "Not enough points.";
         if (points.length !== notchianPointVecs.length) throw "Invalid positions or velocities: Different amount of inputs.";
-        const entityAABB = getEntityAABB({ position, height, width });
+        const entityAABB = getEntityAABBRaw({ position, height, width });
         let nearestDistance = entityAABB.distanceTo(points[0]);
         let currentDistance: number;
         let closestPoint = points[0];
@@ -53,7 +54,7 @@ export class StaticShot {
         blockChecking: boolean = false
     ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null, intersectPos: Vec3 | null } {
         // rawVelocity = notchianVel(rawVelocity).vel
-        const entityAABB = getEntityAABB(target);
+        const entityAABB = getEntityAABBRaw(target);
         let points: Vec3[] = [];
         let pointVelocities: Vec3[] = [];
         let blockHit: Block | null = null;

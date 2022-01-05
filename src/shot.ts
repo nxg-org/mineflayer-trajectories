@@ -19,7 +19,8 @@ import {
     notchianVel,
 } from "./calc/mathUtilts";
 import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
-import { getBlockAABB, getBlockPosAABB, getEntityAABB } from "./calc/aabbUtil";
+import { AABBUtils } from "@nxg-org/mineflayer-util-plugin"
+const {getBlockAABB, getBlockPosAABB, getEntityAABBRaw } = AABBUtils
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { AABBComponents, BasicShotInfo, BoundedShotInfo, ProjectileMotion, ShotEntity } from "./types";
@@ -93,11 +94,11 @@ export class Shot {
     }
 
     public entityXYZInterceptCheck({ position, height, width }: AABBComponents): Vec3 | null {
-        return getEntityAABB({ position, height, width }).intersectsRay(this.initialPos, this.initialVel);
+        return getEntityAABBRaw({ position, height, width }).intersectsRay(this.initialPos, this.initialVel);
     }
 
     public entityXZInterceptCheck({ position, height, width }: AABBComponents): { x: number; z: number } | null {
-        return getEntityAABB({ position, height, width }).xzIntersectsRay(this.initialPos, this.initialVel);
+        return getEntityAABBRaw({ position, height, width }).xzIntersectsRay(this.initialPos, this.initialVel);
     }
 
     public hitEntitiesCheckXZ(...entities: Entity[]): Entity[] {
@@ -107,7 +108,7 @@ export class Shot {
     }
 
     private aabbHitCheckXZ(...aabbs: AABBComponents[] | AABB[]): AABB[] {
-        if (!(aabbs instanceof AABB)) aabbs = (aabbs as AABBComponents[]).map(getEntityAABB);
+        if (!(aabbs instanceof AABB)) aabbs = (aabbs as AABBComponents[]).map(getEntityAABBRaw);
         return (aabbs as AABB[])
             .sort((a, b) => a.xzDistanceTo(this.initialPos) - b.xzDistanceTo(this.initialPos))
             .filter((box) => !!box.xzIntersectsRay(this.initialPos, this.initialVel));
@@ -139,7 +140,7 @@ export class Shot {
     public hitsEntities(blockCheck: boolean = false, ...entities: AABBComponents[]): BoundedShotInfo[] {
         const hits = [];
         for (const info of this.hitEntitiesCheck(blockCheck, ...entities)) {
-            const found = entities.find((e) => getEntityAABB(e).equals(info.entity))!;
+            const found = entities.find((e) => getEntityAABBRaw(e).equals(info.entity))!;
             hits.push({ entity: found, shotInfo: info.shotInfo });
         }
         return hits;
@@ -154,7 +155,7 @@ export class Shot {
             avgSpeed,
             calcShot.totalTicks
         );
-        const newAABB = getEntityAABB({ position: newTarget, height, width });
+        const newAABB = getEntityAABBRaw({ position: newTarget, height, width });
         const calcPredictShot = this.calcToEntity(newAABB, true);
         return calcPredictShot;
     }
@@ -168,7 +169,7 @@ export class Shot {
     public calcToIntercept(blockChecking: boolean = false, entities: Entity[] = []) {
         const entityAABBs = entities
             .sort((a, b) => this.initialPos.distanceTo(a.position) - this.initialPos.distanceTo(b.position))
-            .map((e) => getEntityAABB(e)); //slightly inaccurate.
+            .map((e) => getEntityAABBRaw(e)); //slightly inaccurate.
         let currentPosition = this.initialPos.clone();
         let currentVelocity = this.initialVel.clone();
         let nextPosition = currentPosition.clone().add(currentVelocity);
@@ -219,7 +220,7 @@ export class Shot {
     }
 
     public calcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
-        if (!(target instanceof AABB)) target = getEntityAABB(target);
+        if (!(target instanceof AABB)) target = getEntityAABBRaw(target);
         // height = height = 1.62 ? height + 0.18 : 0;
         const entityAABB = target;
         let currentPosition = this.initialPos.clone();
