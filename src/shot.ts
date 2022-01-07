@@ -19,8 +19,8 @@ import {
     notchianVel,
 } from "./calc/mathUtilts";
 import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
-import { AABBUtils } from "@nxg-org/mineflayer-util-plugin"
-const {getBlockAABB, getBlockPosAABB, getEntityAABBRaw } = AABBUtils
+import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
+const { getBlockAABB, getBlockPosAABB, getEntityAABBRaw } = AABBUtils;
 import { promisify } from "util";
 import { AABB, InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { AABBComponents, BasicShotInfo, BoundedShotInfo, ProjectileMotion, ShotEntity } from "./types";
@@ -241,21 +241,25 @@ export class Shot {
         const entityDist = target.xzDistanceTo(this.initialPos);
         while (totalTicks < 300) {
             const testDist = entityAABB.distanceTo(currentPosition);
-            if (nearestDistance !== testDist) {
-                if (nearestDistance > 6) {
-                    totalTicks += 1;
-                    gravity = this.gravity; // - this.gravity * airResistance.y;
-                    offsetX = -perTickVel.x * airResistance.h;
-                    offsetY = -perTickVel.y * airResistance.y - gravity;
-                    offsetZ = -perTickVel.z * airResistance.h;
-                } else {
-                    totalTicks += 0.2;
-                    gravity = this.gravity * 0.2; //- this.gravity * airResistance.y) * 0.2
-                    offsetX = -perTickVel.x * (airResistance.h * 0.2);
-                    offsetY = -perTickVel.y * (airResistance.y * 0.2) - gravity;
-                    offsetZ = -perTickVel.z * (airResistance.h * 0.2);
-                }
-            }
+            // if (nearestDistance !== testDist) {
+            //     if (nearestDistance > 6) {
+            //         totalTicks += 1;
+            //         gravity = this.gravity; // - this.gravity * airResistance.y;
+            //         offsetX = -perTickVel.x * airResistance.h;
+            //         offsetY = -perTickVel.y * airResistance.y - gravity;
+            //         offsetZ = -perTickVel.z * airResistance.h;
+            //     } else {
+            //         totalTicks += 0.2;
+            //         gravity = this.gravity * 0.2; //- this.gravity * airResistance.y) * 0.2
+            //         offsetX = -perTickVel.x * (airResistance.h * 0.2);
+            //         offsetY = -perTickVel.y * (airResistance.y * 0.2) - gravity;
+            //         offsetZ = -perTickVel.z * (airResistance.h * 0.2);
+            //     }
+            // }
+            totalTicks++;
+            offsetX = -perTickVel.x * airResistance.h;
+            offsetY = -perTickVel.y * airResistance.y - this.gravity;
+            offsetZ = -perTickVel.z * airResistance.h;
 
             if (nearestDistance > testDist) {
                 nearestDistance = testDist;

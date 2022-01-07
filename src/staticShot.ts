@@ -1,15 +1,12 @@
 import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
-import { airResistance } from "./calc/constants";
-import { AABBUtils} from "@nxg-org/mineflayer-util-plugin"
-const {getEntityAABBRaw} = AABBUtils
-import { AABBComponents } from "./types";
+import { airResistance, projectileGravity } from "./calc/constants";
+import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
+const { getEntityAABBRaw } = AABBUtils;
+import { AABBComponents, ProjectileInfo, ProjectileMotion } from "./types";
 
 export class StaticShot {
-
-
-
     static checkForEntityHitFromSortedPoints(
         { position, height, width }: AABBComponents,
         points: Vec3[],
@@ -46,94 +43,92 @@ export class StaticShot {
     }
 
     static calculateShotForCollision(
-        origin: Vec3,
+        { position, velocity, name }: ProjectileInfo,
         target: AABBComponents,
-        rawVelocity: Vec3,
-        gravity: number,
-        blockChecker?: InterceptFunctions,
-        blockChecking: boolean = false
-    ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null, intersectPos: Vec3 | null } {
-        // rawVelocity = notchianVel(rawVelocity).vel
+        blockChecking: boolean = false,
+        blockChecker?: InterceptFunctions
+    ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null; intersectPos: Vec3 | null } {
+        if (!projectileGravity[name!]) throw "invalid projectile: " + name;
+
+        const gravity = projectileGravity[name!];
         const entityAABB = getEntityAABBRaw(target);
         let points: Vec3[] = [];
         let pointVelocities: Vec3[] = [];
         let blockHit: Block | null = null;
         let intersectPos: Vec3 | null = null;
-        let tickVelocity = rawVelocity.clone();
-        let nextPosition = origin.clone().add(rawVelocity);
+        let tickVelocity = velocity.clone();
+        let currentPosition = position.clone();
+        let nextPosition = position.clone().add(tickVelocity);
         let totalTicks = 0;
-        let newGravity: number = gravity + gravity * airResistance.y;
+
         let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = gravity - tickVelocity.y * airResistance.y;
+        let offsetY: number = -tickVelocity.y * airResistance.y - gravity;
         let offsetZ: number = -tickVelocity.z * airResistance.h;
 
         while (totalTicks < 300) {
-            points.push(origin.clone());
-            pointVelocities.push(rawVelocity.clone());
+            points.push(currentPosition.clone());
+            pointVelocities.push(tickVelocity.clone());
 
-            newGravity = gravity + gravity * airResistance.y;
             offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - newGravity;
+            offsetY = -tickVelocity.y * airResistance.y - gravity;
             offsetZ = -tickVelocity.z * airResistance.h;
 
             if (blockChecking && blockChecker) {
-                blockHit = blockChecker.check(origin, nextPosition)?.block;
+                blockHit = blockChecker.check(currentPosition, nextPosition)?.block;
                 if (blockHit) break;
             }
 
-            intersectPos = entityAABB.intersectsSegment(origin, nextPosition);
+            intersectPos = entityAABB.intersectsSegment(currentPosition, nextPosition);
             if (intersectPos) break;
-            
 
-            if (rawVelocity.y < 0 && origin.y < 0) break;
+            if (tickVelocity.y < 0 && currentPosition.y < 0) break;
 
-            origin.add(rawVelocity);
-            rawVelocity.translate(offsetX, offsetY, offsetZ);
-            if (totalTicks % 1 === 0) tickVelocity = rawVelocity;
-            nextPosition.add(rawVelocity);
+            console.log(currentPosition);
+            currentPosition.add(tickVelocity);
+            tickVelocity.translate(offsetX, offsetY, offsetZ);
+            nextPosition.add(tickVelocity);
         }
 
         return { positions: points, velocities: pointVelocities, blockHit, intersectPos };
     }
 
     static calculateShotForPoints(
-        origin: Vec3,
-        rawVelocity: Vec3,
-        gravity: number,
+        { position, velocity, name }: ProjectileInfo,
+        blockChecking: boolean = false,
         blockChecker?: InterceptFunctions,
-        blockChecking: boolean = false
     ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null } {
+        if (!projectileGravity[name!]) throw "invalid projectile: " + name;
+        const gravity = projectileGravity[name!];
         let points: Vec3[] = [];
         let pointVelocities: Vec3[] = [];
         let blockHit: Block | null = null;
-        let tickVelocity = rawVelocity.clone();
-        let nextPosition = origin.clone().add(rawVelocity);
+        let tickVelocity = velocity.clone();
+        let currentPosition = position.clone();
+        let nextPosition = position.clone().add(velocity);
         let totalTicks = 0;
-        let newGravity: number = gravity + gravity * airResistance.y;
         let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = gravity - tickVelocity.y * airResistance.y;
+        let offsetY: number = -tickVelocity.y * airResistance.y - gravity;
         let offsetZ: number = -tickVelocity.z * airResistance.h;
 
         while (totalTicks < 300) {
-            points.push(origin.clone());
-            pointVelocities.push(rawVelocity.clone());
+            points.push(position.clone());
+            pointVelocities.push(velocity.clone());
 
-            newGravity = gravity + gravity * airResistance.y;
             offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - newGravity;
+            offsetY = -tickVelocity.y * airResistance.y - gravity;
             offsetZ = -tickVelocity.z * airResistance.h;
 
             if (blockChecking && blockChecker) {
-                blockHit = blockChecker.check(origin, nextPosition)?.block;
+                blockHit = blockChecker.check(currentPosition, nextPosition)?.block;
                 if (blockHit) break;
             }
 
-            if (rawVelocity.y < 0 && origin.y < 0) break;
+            if (velocity.y < 0 && currentPosition.y < 0) break;
 
-            origin.add(rawVelocity);
-            rawVelocity.translate(offsetX, offsetY, offsetZ);
-            if (totalTicks % 1 === 0) tickVelocity = rawVelocity;
-            nextPosition.add(rawVelocity);
+            currentPosition.add(velocity);
+            velocity.translate(offsetX, offsetY, offsetZ);
+            if (totalTicks % 1 === 0) tickVelocity = velocity;
+            nextPosition.add(velocity);
         }
 
         return { positions: points, velocities: pointVelocities, blockHit };
