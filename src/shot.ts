@@ -110,7 +110,7 @@ export class Shot {
     private aabbHitCheckXZ(...aabbs: AABBComponents[] | AABB[]): AABB[] {
         if (!(aabbs instanceof AABB)) aabbs = (aabbs as AABBComponents[]).map(getEntityAABBRaw);
         return (aabbs as AABB[])
-            .sort((a, b) => a.xzDistanceTo(this.initialPos) - b.xzDistanceTo(this.initialPos))
+            .sort((a, b) => a.xzDistanceToVec(this.initialPos) - b.xzDistanceToVec(this.initialPos))
             .filter((box) => !!box.xzIntersectsRay(this.initialPos, this.initialVel));
     }
 
@@ -225,7 +225,7 @@ export class Shot {
         let currentPosition = this.initialPos.clone();
         let currentVelocity = this.initialVel.clone();
         let perTickVel = currentVelocity.clone();
-        let nearestDistance = entityAABB.distanceTo(currentPosition);
+        let nearestDistance = entityAABB.distanceToVec(currentPosition);
         let nextPosition = currentPosition.clone().add(currentVelocity);
         let currentDist = currentPosition.xzDistanceTo(currentPosition);
         let intersectPos: Vec3 | null = null;
@@ -238,9 +238,9 @@ export class Shot {
         let offsetY: number = -perTickVel.y * airResistance.y - gravity;
         let offsetZ: number = -perTickVel.z * airResistance.h;
 
-        const entityDist = target.xzDistanceTo(this.initialPos);
+        const entityDist = target.xzDistanceToVec(this.initialPos);
         while (totalTicks < 300) {
-            const testDist = entityAABB.distanceTo(currentPosition);
+            const testDist = entityAABB.distanceToVec(currentPosition);
             // if (nearestDistance !== testDist) {
             //     if (nearestDistance > 6) {
             //         totalTicks += 1;

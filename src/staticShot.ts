@@ -17,7 +17,7 @@ export class StaticShot {
         if (points.length === 0 || notchianPointVecs.length === 0) throw "Not enough points.";
         if (points.length !== notchianPointVecs.length) throw "Invalid positions or velocities: Different amount of inputs.";
         const entityAABB = getEntityAABBRaw({ position, height, width });
-        let nearestDistance = entityAABB.distanceTo(points[0]);
+        let nearestDistance = entityAABB.distanceToVec(points[0]);
         let currentDistance: number;
         let closestPoint = points[0];
         let intersect: Vec3 | null = null;
@@ -25,7 +25,7 @@ export class StaticShot {
 
         for (let i = 0; i < points.length; i++) {
             const point = points[i];
-            currentDistance = entityAABB.distanceTo(point);
+            currentDistance = entityAABB.distanceToVec(point);
             if (nearestDistance > currentDistance) break;
             nearestDistance = currentDistance;
             closestPoint = point;
