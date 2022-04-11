@@ -234,15 +234,15 @@ macaddress@^0.5.1:
   resolved "https://registry.yarnpkg.com/macaddress/-/macaddress-0.5.2.tgz#0ed6c836da3b182e4400bc4594083cdd33511cc4"
   integrity sha512-cYYBbT3b84hTEHssWE6OmsuqF/NiLXE2RGK9Sc9SwwE9kMoKrbaUAJtKs6ucd0FFgZjXE1Wm3hoGEEYas0N6EA==
 
-minecraft-data@^2.106.0, minecraft-data@^2.109.0, minecraft-data@^2.113.0:
+minecraft-data@^2.106.0, minecraft-data@^2.109.0, minecraft-data@^2.113.0, minecraft-data@^2.61.0, minecraft-data@^2.62.1, minecraft-data@^2.74.0, minecraft-data@^2.75.0, minecraft-data@^2.98.0:
   version "2.113.0"
   resolved "https://registry.yarnpkg.com/minecraft-data/-/minecraft-data-2.113.0.tgz#e761f710a1385b225414864332338102b2079951"
   integrity sha512-KvFyHOalKVBXYkzvzin7Li0hP1VaLrAJ3z+LipTVjZlda1HZ1Moa8rHfeNQk9ZwdgGnJdPqCL/mPlGYQlHRD2g==
 
-minecraft-data@^2.61.0, minecraft-data@^2.62.1, minecraft-data@^2.73.1, minecraft-data@^2.74.0, minecraft-data@^2.75.0, minecraft-data@^2.98.0:
-  version "2.104.0"
-  resolved "https://registry.yarnpkg.com/minecraft-data/-/minecraft-data-2.104.0.tgz#b8bb428ba84a03ddba75ae8f5cb40d4e1aeb6a6a"
-  integrity sha512-v9eWQIQ2jJu/CyLdEW5sD+1wVoUKkRSdhtYCg2RJ8JR8wrgezi6Mb91EGQB/gg9f0W7Z7gza4tp0bjZ+21/rSg==
+minecraft-data@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/minecraft-data/-/minecraft-data-3.0.0.tgz#ee99428b812d9ea295e6cfc21e243b761f9c128b"
+  integrity sha512-8gChk4VUYky3XfMRO+YE1eS7OHC7uzEbxuosav7f5P8rewJ/8XNIPTmXYZOWnC2MoYCFwHRNHhwpt2YuxsDYqw==
 
 minecraft-folder-path@^1.2.0:
   version "1.2.0"
@@ -448,12 +448,12 @@ prismarine-nbt@^2.0.0:
     protodef "^1.9.0"
 
 prismarine-physics@^1.2.2, prismarine-physics@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/prismarine-physics/-/prismarine-physics-1.3.1.tgz#d1862dd5f0c9c6ff3a752350ec819e28af91986e"
-  integrity sha512-K8aT/Nq0GvDyGsohv2dRugpPMBgZwVpdTURb8/Mh8Br3fOFsn/IJ81zcOJEK2IulTuvuho3vzYM6ayQm7ibUFQ==
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/prismarine-physics/-/prismarine-physics-1.5.0.tgz#5c2dc6df0682c95f590d07b4a5484aae255df716"
+  integrity sha512-jzaE6EvZy5gbKgc3hkTlve/KxAjenbV3bREj1JLP1cnkJPFrwbiAP5gig76vzooqtBw9Qvg0Z2jXywsp4JuqPA==
   dependencies:
-    minecraft-data "^2.73.1"
-    prismarine-nbt "^1.4.0"
+    minecraft-data "^3.0.0"
+    prismarine-nbt "^2.0.0"
     vec3 "^0.1.7"
 
 prismarine-recipe@^1.1.0:
