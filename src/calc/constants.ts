@@ -22,7 +22,7 @@ export const projectileGravity: ProjectileGravity = {
     trident: 0.05,
     egg: 0.04,
     snowball: 0.04,
-    ender_pearl: 0.04,
+    ender_pearl: 0.0375,
     splash_potion: 0.03,
     firework_rocket: 0.00,
 } 

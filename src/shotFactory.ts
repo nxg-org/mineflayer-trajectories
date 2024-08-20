@@ -1,7 +1,7 @@
 import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Vec3 } from "vec3";
 import { projectileGravity, trajectoryInfo } from "./calc/constants";
-import { yawPitchAndSpeedToDir } from "./calc/mathUtilts";
+import { yawPitchAndSpeedToDir } from "./calc/mathUtils";
 import { Shot } from "./shot";
 import { ProjectileInfo, ProjectileMotion, ShotEntity } from "./types";
 
@@ -31,7 +31,7 @@ export class ShotFactory {
         onGround ??= true;
         const projVel = yawPitchAndSpeedToDir(yaw!, pitch!, 1.6);
         const newOrgVel = velocity.clone().translate(0, onGround ? -velocity.y : 0, 0);
-        return new Shot(newOrgVel, { position: position.offset(0, 1.64, 0), velocity: projVel, gravity: 0.05 }, interceptCalcs);
+        return new Shot(newOrgVel, { position: position.offset(0, 1.62, 0), velocity: projVel, gravity: 0.05 }, interceptCalcs);
     }
 
     static fromEntity({ position, velocity, name }: ProjectileInfo, interceptCalcs?: InterceptFunctions) {

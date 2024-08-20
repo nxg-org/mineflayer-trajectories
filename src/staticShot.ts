@@ -1,7 +1,7 @@
 import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
-import { airResistance, projectileGravity } from "./calc/constants";
+import { airResistance, projectileGravity, trajectoryInfo } from "./calc/constants";
 import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
 const { getEntityAABBRaw } = AABBUtils;
 import { AABBComponents, ProjectileInfo, ProjectileMotion } from "./types";
@@ -99,36 +99,41 @@ export class StaticShot {
     ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null } {
         if (!projectileGravity[name!]) throw "invalid projectile: " + name;
         const gravity = projectileGravity[name!];
+        console.log(gravity);
+        
+     
         let points: Vec3[] = [];
         let pointVelocities: Vec3[] = [];
         let blockHit: Block | null = null;
-        let tickVelocity = velocity.clone();
+        let currentVelocity = velocity.clone();
         let currentPosition = position.clone();
-        let nextPosition = position.clone().add(velocity);
+        let nextPosition = position.clone().add(currentVelocity);
         let totalTicks = 0;
-        let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = -tickVelocity.y * airResistance.y - gravity;
-        let offsetZ: number = -tickVelocity.z * airResistance.h;
+        let offsetX: number = -currentVelocity.x * airResistance.h;
+        let offsetY: number = -currentVelocity.y * airResistance.y - gravity;
+        let offsetZ: number = -currentVelocity.z * airResistance.h;
 
         while (totalTicks < 300) {
-            points.push(position.clone());
-            pointVelocities.push(velocity.clone());
+            points.push(currentPosition.clone());
+            pointVelocities.push(currentVelocity.clone());
 
-            offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
-            offsetZ = -tickVelocity.z * airResistance.h;
+            offsetX = -currentVelocity.x * airResistance.h;
+            offsetY = -currentVelocity.y * airResistance.y - gravity;
+            offsetZ = -currentVelocity.z * airResistance.h;
 
             if (blockChecking && blockChecker) {
                 blockHit = blockChecker.check(currentPosition, nextPosition)?.block;
-                if (blockHit) break;
+                if (blockHit) {
+                    // TODO: add block hit position
+                    break
+                }
             }
 
-            if (velocity.y < 0 && currentPosition.y < 0) break;
+            if (currentVelocity.y < 0 && currentPosition.y < 0) break;
 
-            currentPosition.add(velocity);
-            velocity.translate(offsetX, offsetY, offsetZ);
-            if (totalTicks % 1 === 0) tickVelocity = velocity;
-            nextPosition.add(velocity);
+            currentPosition.add(currentVelocity);
+            currentVelocity.translate(offsetX, offsetY, offsetZ);
+            nextPosition.add(currentVelocity);
         }
 
         return { positions: points, velocities: pointVelocities, blockHit };

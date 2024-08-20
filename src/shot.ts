@@ -17,7 +17,7 @@ import {
     getPremonition,
     VoToVox,
     notchianVel,
-} from "./calc/mathUtilts";
+} from "./calc/mathUtils";
 import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
 import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
 const { getBlockAABB, getBlockPosAABB, getEntityAABBRaw } = AABBUtils;
@@ -220,6 +220,7 @@ export class Shot {
 
     public calcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
         if (!(target instanceof AABB)) target = getEntityAABBRaw(target);
+        console.log(target)
         // height = height = 1.62 ? height + 0.18 : 0;
         const entityAABB = target;
         let currentPosition = this.initialPos.clone();
