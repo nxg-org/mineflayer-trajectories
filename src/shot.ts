@@ -18,7 +18,7 @@ import {
     VoToVox,
     notchianVel,
 } from "./calc/mathUtils";
-import { trajectoryInfo, airResistance, BlockFace } from "./calc/constants";
+import { trajectoryInfo, projectileAirResistance, BlockFace } from "./calc/constants";
 import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
 const { getBlockAABB, getBlockPosAABB, getEntityAABBRaw } = AABBUtils;
 import { promisify } from "util";
@@ -59,6 +59,7 @@ export class Shot {
     readonly initialYaw: number;
     readonly initialPitch: number;
     readonly gravity: number;
+    readonly airResistance: number;
     private points: Vec3[];
     private pointVelocities: Vec3[];
     private blockHit = false;
@@ -67,13 +68,14 @@ export class Shot {
 
     constructor(
         originVel: Vec3,
-        { position: pPos, velocity: pVel, gravity }: Required<ProjectileMotion>,
+        { position: pPos, velocity: pVel, gravity, airResistance }: Required<ProjectileMotion>,
         interceptCalcs?: InterceptFunctions
     ) {
         const { yaw, pitch } = dirToYawAndPitch(pVel);
         this.initialPos = pPos.clone();
         this.initialVel = pVel.clone().add(originVel);
         this.gravity = gravity;
+        this.airResistance = airResistance;
         this.initialYaw = yaw;
         this.initialPitch = pitch;
         this.points = [];
@@ -177,15 +179,15 @@ export class Shot {
 
         let totalTicks = 0;
         const gravity = this.gravity; // + this.gravity * airResistance.y;
-        let offsetX: number = -currentVelocity.x * airResistance.h;
-        let offsetY: number = -currentVelocity.y * airResistance.y - gravity;
-        let offsetZ: number = -currentVelocity.z * airResistance.h;
+        let offsetX: number = -currentVelocity.x * this.airResistance;
+        let offsetY: number = -currentVelocity.y * this.airResistance - gravity;
+        let offsetZ: number = -currentVelocity.z * this.airResistance;
 
         while (totalTicks < 300) {
             totalTicks += 1;
-            offsetX = -currentVelocity.x * airResistance.h;
-            offsetY = -currentVelocity.y * airResistance.y - gravity;
-            offsetZ = -currentVelocity.z * airResistance.h;
+            offsetX = -currentVelocity.x * this.airResistance;
+            offsetY = -currentVelocity.y * this.airResistance - gravity;
+            offsetZ = -currentVelocity.z * this.airResistance;
 
             if (blockChecking && this.interceptCalcs) {
                 block = this.interceptCalcs.check(currentPosition, nextPosition)?.block;
@@ -235,9 +237,9 @@ export class Shot {
 
         let totalTicks = 0;
         let gravity = this.gravity; // + this.gravity * airResistance.y;
-        let offsetX: number = -perTickVel.x * airResistance.h;
-        let offsetY: number = -perTickVel.y * airResistance.y - gravity;
-        let offsetZ: number = -perTickVel.z * airResistance.h;
+        let offsetX: number = -currentVelocity.x * this.airResistance;
+        let offsetY: number = -currentVelocity.y * this.airResistance - gravity;
+        let offsetZ: number = -currentVelocity.z * this.airResistance;
 
         const entityDist = target.xzDistanceToVec(this.initialPos);
         while (totalTicks < 300) {
@@ -258,9 +260,9 @@ export class Shot {
             //     }
             // }
             totalTicks++;
-            offsetX = -perTickVel.x * airResistance.h;
-            offsetY = -perTickVel.y * airResistance.y - this.gravity;
-            offsetZ = -perTickVel.z * airResistance.h;
+            offsetX = -perTickVel.x * this.airResistance
+            offsetY = -perTickVel.y * this.airResistance - this.gravity;
+            offsetZ = -perTickVel.z * this.airResistance;
 
             if (nearestDistance > testDist) {
                 nearestDistance = testDist;

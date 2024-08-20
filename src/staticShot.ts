@@ -1,10 +1,10 @@
 import { InterceptFunctions } from "@nxg-org/mineflayer-util-plugin";
 import { Block } from "prismarine-block";
 import { Vec3 } from "vec3";
-import { airResistance, projectileGravity, trajectoryInfo } from "./calc/constants";
+import { projectileGravity, projectileAirResistance, trajectoryInfo } from "./calc/constants";
 import { AABBUtils } from "@nxg-org/mineflayer-util-plugin";
 const { getEntityAABBRaw } = AABBUtils;
-import { AABBComponents, ProjectileInfo, ProjectileMotion } from "./types";
+import { AABBComponents, BaseProjectileObjInfo, ProjectileMotion } from "./types";
 
 export class StaticShot {
     static checkForEntityHitFromSortedPoints(
@@ -43,7 +43,7 @@ export class StaticShot {
     }
 
     static calculateShotForCollision(
-        { position, velocity, name }: ProjectileInfo,
+        { position, velocity, name }: BaseProjectileObjInfo,
         target: AABBComponents,
         blockChecking: boolean = false,
         blockChecker?: InterceptFunctions
@@ -61,17 +61,20 @@ export class StaticShot {
         let nextPosition = position.clone().add(tickVelocity);
         let totalTicks = 0;
 
-        let offsetX: number = -tickVelocity.x * airResistance.h;
-        let offsetY: number = -tickVelocity.y * airResistance.y - gravity;
-        let offsetZ: number = -tickVelocity.z * airResistance.h;
+        let aH = projectileAirResistance[name!];
+        let aY = projectileAirResistance[name!];
+
+        let offsetX: number = -tickVelocity.x * aH;
+        let offsetY: number = -tickVelocity.y * aY - gravity;
+        let offsetZ: number = -tickVelocity.z * aH;
 
         while (totalTicks < 300) {
             points.push(currentPosition.clone());
             pointVelocities.push(tickVelocity.clone());
 
-            offsetX = -tickVelocity.x * airResistance.h;
-            offsetY = -tickVelocity.y * airResistance.y - gravity;
-            offsetZ = -tickVelocity.z * airResistance.h;
+            offsetX = -tickVelocity.x * aH;
+            offsetY = -tickVelocity.y * aY - gravity;
+            offsetZ = -tickVelocity.z * aH;
 
             if (blockChecking && blockChecker) {
                 blockHit = blockChecker.check(currentPosition, nextPosition)?.block;
@@ -93,7 +96,7 @@ export class StaticShot {
     }
 
     static calculateShotForPoints(
-        { position, velocity, name }: ProjectileInfo,
+        { position, velocity, name }: BaseProjectileObjInfo,
         blockChecking: boolean = false,
         blockChecker?: InterceptFunctions,
     ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null } {
@@ -109,17 +112,21 @@ export class StaticShot {
         let currentPosition = position.clone();
         let nextPosition = position.clone().add(currentVelocity);
         let totalTicks = 0;
-        let offsetX: number = -currentVelocity.x * airResistance.h;
-        let offsetY: number = -currentVelocity.y * airResistance.y - gravity;
-        let offsetZ: number = -currentVelocity.z * airResistance.h;
+
+        let aH = projectileAirResistance[name!];
+        let aY = projectileAirResistance[name!];
+
+        let offsetX: number = -currentVelocity.x * aH;
+        let offsetY: number = -currentVelocity.y * aY - gravity;
+        let offsetZ: number = -currentVelocity.z * aH;
 
         while (totalTicks < 300) {
             points.push(currentPosition.clone());
             pointVelocities.push(currentVelocity.clone());
 
-            offsetX = -currentVelocity.x * airResistance.h;
-            offsetY = -currentVelocity.y * airResistance.y - gravity;
-            offsetZ = -currentVelocity.z * airResistance.h;
+            offsetX = -currentVelocity.x * aH;
+            offsetY = -currentVelocity.y * aY - gravity;
+            offsetZ = -currentVelocity.z * aH;
 
             if (blockChecking && blockChecker) {
                 blockHit = blockChecker.check(currentPosition, nextPosition)?.block;

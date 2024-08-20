@@ -28,10 +28,11 @@ bot.on("entityMoved", async (ent) => {
   checkedEntities[ent.id] = [];
 
   // console.log(ent)
-  if (["arrow", "firework_rocket", "ender_pearl", "egg"].includes(ent.name!)) {
-    const initShot = StaticShot.calculateShotForPoints(ent, true, intercepter);
+  if (["arrow", "firework_rocket", "ender_pearl", "egg", "potion", "trident", "fishing_bobber"].includes(ent.name!)) {
     console.log(vectorMagnitude(ent.velocity));
 
+    const initShot = StaticShot.calculateShotForPoints(ent, true, intercepter);
+ 
     (async () => {
 
       for (let i = 0; i < 3; i++) {
