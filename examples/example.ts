@@ -20,29 +20,26 @@ const emptyVec = new Vec3(0, 0, 0);
 
 
 
-
 bot.on("entityMoved", async (ent) => {
   if (checkedEntities[ent.id]) return;
   if (ent.velocity.equals(emptyVec)) return;
 
   checkedEntities[ent.id] = [];
 
-  // console.log(ent)
-  if (["arrow", "firework_rocket", "ender_pearl", "egg", "potion", "trident", "fishing_bobber"].includes(ent.name!)) {
+  if (["arrow", "firework_rocket", "ender_pearl", "egg", "potion", "trident", "fishing_bobber", "snowball", "llama_spit"].includes(ent.name!)) {
     console.log(vectorMagnitude(ent.velocity));
 
     const initShot = StaticShot.calculateShotForPoints(ent, true, intercepter);
  
     (async () => {
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 1; i++) {
         for (const idx in initShot.positions) {
           const pos = initShot.positions[idx];
           const vel = initShot.velocities[idx];
           const { x, y, z } = pos;
-          const { x: vx, y: vy, z: vz } = vel;
           bot.chat(`/particle flame ${x} ${y} ${z} 0 0 0 0 1 force`);
-          console.log(`pos: ${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)} vel: ${vx.toFixed(3)} ${vy.toFixed(3)} ${vz.toFixed(3)}`);
+          // console.log(`pos: ${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)} vel: ${vx.toFixed(3)} ${vy.toFixed(3)} ${vz.toFixed(3)}`);
         }
 
         await bot.waitForTicks(20);

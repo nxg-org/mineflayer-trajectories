@@ -2,27 +2,26 @@ import { ProjectileEnvInfo } from "../types";
 
 type ProjectileInfos = { [name: string]: ProjectileEnvInfo };
 
-
 export const projectileGravity: Record<string, number> = {
   arrow: 0.05,
   trident: 0.05,
-  egg: 0.04,
-  snowball: 0.04,
-  ender_pearl: 0.0375,
-  splash_potion: 0.03,
+  egg: 0.03,
+  snowball: 0.03,
+  ender_pearl: 0.03,
+  potion: 0.05,
   firework_rocket: 0.0,
   fishing_bobber: 0.03,
 };
 
 export const projectileAirResistance: Record<string, number> = {
-  arrow: 0.99,
-  trident: 0.99,
-  egg: 0.99,
-  snowball: 0.99,
-  ender_pearl: 0.99,
-  splash_potion: 0.99,
-  firework_rocket: 0.99,
-  fishing_bobber: 0.92,
+  arrow: 1 - 0.99,
+  trident: 1 - 0.99,
+  egg: 1 - 0.99,
+  snowball: 1 - 0.99,
+  ender_pearl: 1 - 0.99,
+  potion: 1 - 0.99,
+  firework_rocket: 1 - 0.99,
+  fishing_bobber: 1 - 0.92,
 };
 
 export const trajectoryInfo: ProjectileInfos = {
@@ -33,7 +32,7 @@ export const trajectoryInfo: ProjectileInfos = {
   snowball: { v0: 1.5, g: projectileGravity["snowball"], ph: 1.52, a: projectileAirResistance["snowball"] },
   egg: { v0: 1.5, g: projectileGravity["egg"], ph: 1.52, a: projectileAirResistance["egg"] },
   ender_pearl: { v0: 1.5, g: projectileGravity["ender_pearl"], ph: 1.52, a: projectileAirResistance["ender_pearl"] },
-  splash_potion: { v0: 0.4, g: projectileGravity["potion"], ph: 1.52, a: projectileAirResistance["potion"] },
+  potion: { v0: 0.4, g: projectileGravity["potion"], ph: 1.52, a: projectileAirResistance["potion"] },
   fishing_rod: { v0: 1.5, g: projectileGravity["fishing_bobber"], ph: 1.62, a: projectileAirResistance["fishing_bobber"] }, // TODO: nake v0 variable dependent on yaw and pitch.
 };
 

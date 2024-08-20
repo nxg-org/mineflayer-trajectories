@@ -86,7 +86,6 @@ export class StaticShot {
 
             if (tickVelocity.y < 0 && currentPosition.y < 0) break;
 
-            console.log(currentPosition);
             currentPosition.add(tickVelocity);
             tickVelocity.translate(offsetX, offsetY, offsetZ);
             nextPosition.add(tickVelocity);
@@ -102,8 +101,6 @@ export class StaticShot {
     ): { positions: Vec3[]; velocities: Vec3[]; blockHit: Block | null } {
         if (!projectileGravity[name!]) throw "invalid projectile: " + name;
         const gravity = projectileGravity[name!];
-        console.log(gravity);
-        
      
         let points: Vec3[] = [];
         let pointVelocities: Vec3[] = [];

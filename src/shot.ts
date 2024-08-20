@@ -222,7 +222,6 @@ export class Shot {
 
     public calcToEntity(target: AABBComponents | AABB, blockChecking: boolean = false): BasicShotInfo {
         if (!(target instanceof AABB)) target = getEntityAABBRaw(target);
-        console.log(target)
         // height = height = 1.62 ? height + 0.18 : 0;
         const entityAABB = target;
         let currentPosition = this.initialPos.clone();
