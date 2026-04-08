@@ -26,7 +26,7 @@ export class ShotFactory {
         interceptCalcs
       );
     } else {
-      throw "Invalid weapon: " + weapon ?? heldItem?.name;
+      throw "Invalid weapon: " + (weapon ?? heldItem?.name);
     }
   }
 
@@ -60,9 +60,11 @@ export class ShotFactory {
   }
 
   static fromEntity({ position, velocity, name }: BaseProjectileObjInfo, interceptCalcs?: InterceptFunctions) {
-    const gravity = projectileGravity[name!];
-    const airResistance = projectileAirResistance[name!];
+    // needed for version 1.8.9
+    const name1 = name?.toLowerCase();
+    const gravity = projectileGravity[name1!];
+    const airResistance = projectileAirResistance[name1!];
     if (!!gravity) return new Shot(emptyVec, { position, velocity, gravity, airResistance }, interceptCalcs);
-    else throw `Invalid projectile type: ${name}`;
+    else throw `Invalid projectile type: ${name1}`;
   }
 }
